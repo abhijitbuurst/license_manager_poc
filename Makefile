@@ -8,6 +8,7 @@ CC=gcc
 LOCAL_CFLAGS=-g -Wall
 BUILDDIR=./Build
 SRCDIR=./src
+TESTDIR=./test
 
 LOCAL_INCLUDES= -I.
 
@@ -19,6 +20,9 @@ LOCAL_CFLAGS+=-DNALPBSD
 else
 	LOCAL_LIBS= -ldl -pthread
 endif
+
+LMIWRAPOBJS=\
+	$(BUILDDIR)/license_manager_interface.o
 
 NINITWRAPOBJS= \
 	$(BUILDDIR)/init.o
@@ -57,9 +61,14 @@ clean:
 #
 # Executables
 # ---------------------------------------------------------------------------- #
+# lm_term: 
 
-license_manager_interface: $(BUILDDIR)/license_manager_interface.o $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS) $(NINITWRAPOBJS)
-	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -o license_manager_interface $(BUILDDIR)/license_manager_interface.o $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS) $(NINITWRAPOBJS) $(LOCAL_LIBS)
+
+#
+# license manager .so file
+# --------------------------------------------------------------------------------#
+license_manager_interface: $(LMIWRAPOBJS) $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS) $(NINITWRAPOBJS)
+	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -o license_manager_interface $(LMIWRAPOBJS) $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS) $(NINITWRAPOBJS) $(LOCAL_LIBS)
 #
 # Object modules
 # ----------------------------------------------------------------------------
@@ -81,4 +90,7 @@ $(BUILDDIR)/dsoSHAFER.o:
 
 $(BUILDDIR)/libHelper.o:
 	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(SRCDIR)/northbound/libHelper.c -o $(BUILDDIR)/libHelper.o
+
+$(BUILDDIR)/lm_term.o:
+	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(TESTDIR)/lc_term.c -o $(BUILDDIR)/lc_term.o
 

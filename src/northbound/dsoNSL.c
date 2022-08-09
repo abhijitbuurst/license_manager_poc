@@ -21,7 +21,6 @@ void *libHandle
 	int				rv;
 	NSLValidateLibrary_t	NSLValidateLibrary_ptr = NULL;
 
-
 	if (!(NSLValidateLibrary_ptr = (NSLValidateLibrary_t)GetSymbol(libHandle, "NSLValidateLibrary")))
 	{
 		return -1;

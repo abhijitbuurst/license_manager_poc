@@ -1,37 +1,89 @@
 #ifndef __INIT_H__
 #define __INIT_H__
 
-//Used with alarm to indicate it is time to check license status
-unsigned int			TIMETOCHECKLICENSE = 0;
 
-int
-OpenLibrary(
-char				*xmlParams,
-uint32_t			custID,
-uint32_t			prodID
-);
+#if ! defined (WIN32)
+#include <unistd.h>
+#include <signal.h>
+#include <dlfcn.h>
+#include <sys/time.h>
+#else
+#include <Windows.h>
+#pragma comment(lib, "Winmm.lib")
+#endif
+
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
+#include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <ctype.h>
+#include <inttypes.h>
+
+
+//Used with alarm to indicate it is time to check license status
+
+
 
 int
 GetLibraryInfo(
 );
 
-int
-checkLicenseStatus(
-char			*licenseCode,
-int32_t			*licenseStatus,
-uint32_t		*licenseType,
-uint32_t		*actType,
-char			*xmlRegInfo
+void *
+GetSymbol(
+void                *libHandle,
+const char          *symName
 );
 
 int
-updateLicense(
+SetupLib(
+char            *libPath,
+void            **libHandle
+);
+
+
+int
+initLib(
+char            *libPath,
+void            **libHandle
 );
 
 int
-doFeature(
-char			*featcode,
-char			*nsaUsername
+openLibrary(
+char				*xmlParams,
+char				*libPath,
+void				**libHandle
+);
+
+int
+closeLibrary(
+void			*libHandle
+);
+
+int
+constParams(
+int					https,
+char				*logLevel,
+char				*workDir,
+char				*clientName,
+int					security,
+char				**xmlParams
+);
+
+int
+addXMLParam(
+char	**xmlParams,
+char	*xmlName,
+char	*xmlValue
+);
+
+int
+usage(
+);
+
+int
+cleanup(
 );
 
 #if ! defined (WIN32)
@@ -50,41 +102,6 @@ DWORD_PTR   dw1,
 DWORD_PTR   dw2
 );
 #endif
-
-int
-SetupLib(
-char            *libPath,
-void            **libHandle
-);
-
-void *
-GetSymbol(
-void                *libHandle,
-const char          *symName
-);
-
-int
-constParams(
-char				**xmlParams,
-int					security,
-char				*WorkDir,
-char				*LogLevel
-);
-
-int
-addXMLParam(
-char	**xmlParams,
-char	*xmlName,
-char	*xmlValue
-);
-
-int
-usage(
-);
-
-int
-cleanup(
-);
 
 
 #endif //__INIT_H__
