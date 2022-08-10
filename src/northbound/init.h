@@ -22,6 +22,10 @@
 #include <inttypes.h>
 
 
+#define clear() printf("\033[H\033[J")
+#define gotoXY(x,y) printf("\033[%u;%uH", (y), (x))
+
+
 //Used with alarm to indicate it is time to check license status
 
 
@@ -84,6 +88,89 @@ usage(
 
 int
 cleanup(
+);
+
+int
+getNSLLibraryInfo(
+int				offset,
+char			**nslVersion,
+char			**nsaVersion,
+char			**compID,
+char			**nslHostName,
+char			**nsaHostName,
+void			*libHandle
+);
+
+int
+getLicenseInfo(
+int				offset,
+int				*offlineState,
+char			**authentication,
+char			**licenseInfo,
+char			**licenseStatus,
+char			**expDate,
+char			**expLease,
+char			**compID,
+void			*libHandle
+);
+
+
+void
+licStat2Str(
+int			licStat,
+char		**licenseStatus
+);
+
+void
+licType2Str(
+uint32_t	licType,
+char		**licenseType,
+char		**expDate,
+void		*libHandle
+);
+
+void
+licAct2Str(
+uint32_t	actType,
+char		**activationType
+);
+
+
+void
+handleError(
+int         nslErrorNo,
+char        **nalpMsg,
+void        *libHandle
+);
+
+int
+outputNSLLibraryInfo(
+unsigned int	*startX,
+unsigned int	*startY,
+char			*libPath,
+int				custID,
+int				prodID,
+char			*nslVersion,
+char			*nsaVersion,
+char			*compID,
+char			*nslHostName,
+char			*nsaHostName
+);
+
+int
+outputLicenseInfo(
+unsigned int	*startX,
+unsigned int	*startY,
+int				offlineState,
+char			*authentication,
+char			*licenseInfo,
+char			*licenseStatus,
+char			*expDate,
+char			*expLease
+);
+
+int outInformation(
+char            *libPath
 );
 
 #if ! defined (WIN32)

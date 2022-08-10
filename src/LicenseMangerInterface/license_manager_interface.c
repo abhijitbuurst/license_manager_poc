@@ -51,5 +51,6 @@ void            **libHandle
 	retVal = SetupLib(libPath, libHandle);
     fprintf(stdout, "Exit from Testing of Setup License Manager\n");
 
+    retVal = outInformation(libPath);
     return retVal;
 }

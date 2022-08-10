@@ -69,7 +69,7 @@ const char  		*symName
 		fprintf(stderr, "Invalild library handle\n");
 		return NULL;
 	}
-
+    fprintf(stdout, "LibHelperInput %p %s\n", libHandle, symName);
 #if ! defined (WIN32)
     return dlsym(libHandle, symName);
 #else
