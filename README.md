@@ -1,5 +1,5 @@
 # license_manager_poc
-https://github.com/abhijitbuurst/license_manager_poc.git
+git clone https://github.com/abhijitbuurst/license_manager_poc.git
 
 cd license_manager_poc/
 
