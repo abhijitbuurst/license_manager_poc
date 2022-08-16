@@ -7,8 +7,26 @@
 int 
 setup_licensing_server(
 char            *libPath,
-void            **libHandle
+void            **libHandle,
+int				custID,
+int				prodID,
+unsigned int	xauth,
+unsigned int	yauth,
+unsigned int	zauth
 );
 
+int
+SetLicenseStatus(
+void		    **libHandle,
+char			*licenseCode,
+int32_t			*licenseStatus,
+uint32_t		*licenseType,
+uint32_t		*actType,
+char			*xmlRegInfo
+);
 
+int
+GetLicenseStatus(
+void		    **libHandle
+);
 #endif //__LM_MANAGER_INTERFACE_H__

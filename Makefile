@@ -1,11 +1,12 @@
 OSTYPE := $(shell uname -s)
 
 BINARIES= \
-	license_manager_interface
+	lm_term
 
 
 CC=gcc
-LOCAL_CFLAGS=-g -Wall
+LOCAL_CFLAGS=-g -Wall -fPIC
+SHARED=-shared
 BUILDDIR=./Build
 SRCDIR=./src
 TESTDIR=./test
@@ -39,6 +40,9 @@ NSLWRAPOBJS= \
 ACTWRAPOBJS= \
 	$(BUILDDIR)/dsoSHAFER.o
 
+LMTWRAPOBJS= \
+	$(BUILDDIR)/lm_term.o
+
 # ACTPARSEOBJS= \
 # 	$(BUILDDIR)/libHelper.o \
 # 	$(BUILDDIR)/nalpArgs.o \
@@ -61,14 +65,16 @@ clean:
 #
 # Executables
 # ---------------------------------------------------------------------------- #
-# lm_term: 
+lm_term: $(LMTWRAPOBJS) $(BUILDDIR)/license_manager.so
+	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -o lm_term $(LMTWRAPOBJS) $(BUILDDIR)/license_manager.so $(LOCAL_LIBS)
 
 
 #
 # license manager .so file
 # --------------------------------------------------------------------------------#
-license_manager_interface: $(LMIWRAPOBJS) $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS) $(NINITWRAPOBJS)
-	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -o license_manager_interface $(LMIWRAPOBJS) $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS) $(NINITWRAPOBJS) $(LOCAL_LIBS)
+$(BUILDDIR)/license_manager.so: $(LMIWRAPOBJS) $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS) $(NINITWRAPOBJS)
+	$(CC) $(SHARED) -o $(BUILDDIR)/license_manager.so $(LMIWRAPOBJS) $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS) $(NINITWRAPOBJS)
+
 #
 # Object modules
 # ----------------------------------------------------------------------------
@@ -92,5 +98,5 @@ $(BUILDDIR)/libHelper.o:
 	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(SRCDIR)/northbound/libHelper.c -o $(BUILDDIR)/libHelper.o
 
 $(BUILDDIR)/lm_term.o:
-	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(TESTDIR)/lc_term.c -o $(BUILDDIR)/lc_term.o
+	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(TESTDIR)/lm_term.c -o $(BUILDDIR)/lm_term.o
 

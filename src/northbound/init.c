@@ -30,8 +30,18 @@ int			    retVal;
 char			*xmlParams;
 unsigned int	security;
 int				offset;
-int				custID = 5381;
-int				prodID = 100;
+int				custID;
+int				prodID;
+
+//These are the security values stamped into your library. They
+// should be changed to match your values.
+// NOTE When selecting yauth and zauth it is important that they
+// NOT be multiples of each other (for instance, yauth=300 zauth=600).
+// If they are multiples the resulting security offset will NOT be
+// random.
+unsigned int	xauth;
+unsigned int	yauth;
+unsigned int	zauth;
 
 //An optional name that may be used to identify the client.  This name
 // will appear in DataStream information.
@@ -113,17 +123,7 @@ char            *libPath,
 void            **libHandle
 )
 {
-    fprintf(stdout, "Enter into Testing of SetupLib\n");
-
-	//These are the security values stamped into your library. They
-	// should be changed to match your values.
-	// NOTE When selecting yauth and zauth it is important that they
-	// NOT be multiples of each other (for instance, yauth=300 zauth=600).
-	// If they are multiples the resulting security offset will NOT be
-	// random.
-	unsigned int	xauth = 198;
-	unsigned int	yauth = 819;
-	unsigned int	zauth = 333;
+    fprintf(stdout, "Setting up the Library\n");
 
 	if ((yauth != 0) && (zauth != 0))
 	{
@@ -151,7 +151,7 @@ void            **libHandle
 	{
 		return retVal;
 	}
-    fprintf(stdout, "Exit: Testing of SetupLib\n");
+    fprintf(stdout, "Library setup done\n");
 
 	return retVal;
 }
@@ -175,7 +175,8 @@ void            **libHandle
 		fprintf(stdout, "Library open failed: %d\n", retVal);
 		return retVal;
 	}
-    fprintf(stdout, "Enter: initLib method %d %d %p \n", custID, prodID, *libHandle);
+	// TODO: Read from 
+    // fprintf(stdout, "Enter: initLib method %d %d %p \n", custID, prodID, *libHandle);
 
 	retVal = dsoNSLValidateLibrary(custID, prodID, *libHandle);
 	retVal = retVal - offset;
@@ -198,7 +199,7 @@ void            **libHandle
 	retVal = getLicenseInfo(offset, &offlineState, &authentication,
 				&licenseInfo, &licenseStatus, &expDate, &expLease,
 				&compID, *libHandle);
-    fprintf(stdout, "Exit:  initLib method");
+    // fprintf(stdout, "Exit:  initLib method");
 
 	return 0;
 }
@@ -214,7 +215,7 @@ void				**libHandle
 	int			retVal;
 	struct stat	stbuf;
 
-    fprintf(stdout, "Enter: openLibrary method\n");
+    // fprintf(stdout, "Enter: openLibrary method\n");
 
 	retVal = stat(libPath, &stbuf);
 
@@ -248,7 +249,7 @@ void				**libHandle
 		fprintf(stderr, "Open library failed\n");
 		return retVal;
 	}
-    fprintf(stdout, "Exit:  openLibrary method\n");
+    // fprintf(stdout, "Exit:  openLibrary method\n");
 	return 0;
 }
 
@@ -338,7 +339,7 @@ char				**xmlParams
 {
 	int			xmlLen;
 	char		secVal[25];
-    fprintf(stdout, "Enter:  constParams method\n");
+    // fprintf(stdout, "Enter:  constParams method\n");
 
 	//Start with enough room for
 	// <?xml version=\"1.0\" encoding=\"UTF-8\"?> 42
@@ -409,7 +410,7 @@ char				**xmlParams
 	addXMLParam(xmlParams, "ProxyPassword", comArgs->proxyPass);
 	addXMLParam(xmlParams, "WorkGroup", comArgs->workGroup);
 	*/
-    fprintf(stdout, "Exit:  constParams method\n");
+    // fprintf(stdout, "Exit:  constParams method\n");
 
 	return 0;	
 }
@@ -1109,10 +1110,10 @@ char			*nsaHostName
 	x = *startX;
 	y = *startY;
 
-	gotoXY(x, y);
+	// gotoXY(x, y);
 	fprintf(stdout, "Library path: %s\n", libPath);
 
-	gotoXY(x, ++y);
+	// gotoXY(x, ++y);
 	fprintf(stdout, "CustID: %d\tProdID: %d\n", custID, prodID);
 
 	//The version info is something like
@@ -1122,7 +1123,7 @@ char			*nsaHostName
 	nsaVer = strrchr(nsaVersion, ':');
 	nsaVer = nsaVer - 3;
 
-	gotoXY(x, ++y);
+	// gotoXY(x, ++y);
 
 	if (nsaVer != NULL)
 	{
@@ -1133,10 +1134,10 @@ char			*nsaHostName
 		fprintf(stdout, "%s\n", nslVersion);
 	}
 
-	gotoXY(x, ++y);
+	// gotoXY(x, ++y);
 	fprintf(stdout, "NSL Host: %s\n", nslHostName);
 
-	gotoXY(x, ++y);
+	// gotoXY(x, ++y);
 	fprintf(stdout, "NSA Host: %s\n", nsaHostName);
 
 	*startX = x;
@@ -1165,7 +1166,7 @@ char			*expLease
 	y = *startY;
 
 	//License code may be unset
-	gotoXY(x, y);
+	// gotoXY(x, y);
 	
 	if (authentication == NULL)
 	{
@@ -1176,25 +1177,25 @@ char			*expLease
 		fprintf(stdout, "License code: %s\n", authentication);
 	}
 
-	gotoXY(x, ++y);
+	// gotoXY(x, ++y);
 	fprintf(stdout, "ComputerID: %s\n", compID);
 
-	gotoXY(x, ++y);
+	// gotoXY(x, ++y);
 	fprintf(stdout, "License status: %s\n", licenseStatus);
 
 	if (offlineState == 1)
 	{
-		gotoXY(x, ++y);
+		// gotoXY(x, ++y);
 		fprintf(stdout, "Library awaiting a certificate import\n");
 	}
 
-	gotoXY(x, ++y);
+	// gotoXY(x, ++y);
 	fprintf(stdout, "License Type: %s\n", licenseInfo);
 
-	gotoXY(x, ++y);
+	// gotoXY(x, ++y);
 	fprintf(stdout, "License Exp Date: %s\n", expDate);
 
-	gotoXY(x, ++y);
+	// gotoXY(x, ++y);
 	fprintf(stdout, "Lease Exp Date: %s\n", expLease);
 
 	*startX = x;
@@ -1210,17 +1211,172 @@ char            *libPath
 {
 	unsigned int	x,y;
 
-	clear();
+	// clear();
 
 	x = 3;
 	y = 2;
+	fprintf(stdout, "===================================\n");
 
 	outputNSLLibraryInfo(&x, &y, libPath, custID, prodID,
 			nslVersion, nsaVersion, compID, nslHostName, nsaHostName);
 
-	y = y + 2;
+	fprintf(stdout, "-----------------------------------\n");
 
 	outputLicenseInfo(&x, &y, offlineState,
 			authentication, licenseInfo, licenseStatus, expDate, expLease);
+	fprintf(stdout, "===================================\n");
+
 	return 0;
+}
+
+int 
+setConfigParameter(
+int				CUSTID,
+int				PRODID,
+unsigned int	XAUTH,
+unsigned int	YAUTH,
+unsigned int	ZAUTH
+)
+{
+	custID = CUSTID;
+	prodID = PRODID;
+	xauth = XAUTH;
+	yauth = YAUTH;
+	zauth = ZAUTH;
+	return 0;
+}
+
+
+int
+checkLicenseStatus(
+void			**libHandle,
+char			*licenseCode,
+int32_t			*licenseStatus,
+uint32_t		*licenseType,
+uint32_t		*actType,
+char			*xmlRegInfo
+)
+{
+	char			*compID = NULL;
+	char			*errMsg = NULL;
+	int				retVal;
+
+	// fprintf(stdout, "Input %p %s\n", *libHandle, licenseCode);
+
+	fprintf(stdout, "\n\n");
+	fprintf(stdout, "Checking current license status\n");
+	fprintf(stdout, "==================================================\n");
+
+	//Check on the license and get a new one if needed.  If
+	// we don't get a valid license quit.
+	retVal = dsoNSLGetLicenseStatus(licenseStatus, *libHandle);
+	retVal = retVal - offset;
+
+	//An error return (< 0)from the library indicates that something
+	// is wrong. On the other hand, a status value of < 0 indicates
+	// that the current license is invalid.
+	//
+	//If no error and a good status we are good to continue
+	//Many error returns can be sucessfully handled simply by requesting
+	// a new license. So, if we have either an error or an invalid license
+	// status, try to get a new license from Nalpeiron.
+	if ((retVal < 0) || (*licenseStatus <= 0))
+	{
+		//The getlicense call is where registration information is
+		// passed into Nalpeiron if it is present.
+		fprintf(stdout, "Getting New License\n");
+		retVal = dsoNSLObtainLicense(licenseCode,
+					licenseStatus, xmlRegInfo, NULL, *libHandle);
+		retVal = retVal - offset;
+
+		//We've failed with an error.  Output error information and exit
+		if (retVal != 0)
+		{
+			fprintf(stderr, "Get license failed\n");
+			dsoNalpGetErrorMsg(retVal, &errMsg, *libHandle);
+
+			if (errMsg != NULL)
+			{
+				fprintf(stderr, "%d: %s\n", retVal, errMsg);
+				dsoNSLFree(errMsg, *libHandle);
+				errMsg = NULL;
+			}
+
+			fprintf(stdout, "==================================================\n");
+			fprintf(stdout, "\n\n");
+			return retVal;
+		}
+		
+		retVal = dsoNSLGetComputerID(&compID, *libHandle);
+		retVal = retVal - offset;
+		
+		if (retVal != 0)
+		{
+			fprintf(stderr, "GetComputerID after NSLObtainLicense() failed\n");
+			dsoNalpGetErrorMsg(retVal, &errMsg, *libHandle);
+
+			if (errMsg != NULL)
+			{
+				fprintf(stderr, "%d: %s\n", retVal, errMsg);
+				dsoNSLFree(errMsg, *libHandle);
+				errMsg = NULL;
+			}
+		}
+		else
+		{
+			fprintf(stdout, "After NSLObtainLicense(), Comuter ID: %s\n", compID);
+		}
+		
+		if (compID != NULL) dsoNSLFree(compID, *libHandle);
+
+		//We sucessfully contacted Nalpeiron but no valid license is
+		// available to us.  Print an error message and exit.  Possible
+		// values of the product status can be found in prodStatus.h
+		if (licenseStatus < 0)
+		{
+			fprintf(stderr, "Invalid product status of %d\n", *licenseStatus);
+			fprintf(stdout, "==================================================\n");
+			fprintf(stdout, "\n\n");
+			return -1;
+		}
+	}
+
+	//We have a license of some sort.  Get info on type and activation
+	// method (activation method will be online as we just got it
+	// from NSLGetLicense).
+	retVal = dsoNSLGetLicenseInfo(licenseType, actType, *libHandle);
+	retVal = retVal - offset;
+
+	if (retVal < 0)
+	{
+		// fprintf(stdout, "Error while Getting license info\n");
+		return retVal;
+	}
+
+	fprintf(stdout, "Current license status is %d\n", *licenseStatus);
+	fprintf(stdout, "==================================================\n");
+	fprintf(stdout, "\n\n");
+	fflush(stdout);
+	return 0;
+}
+
+
+int
+GetLicenseForCurrentUser(
+void            **libHandle
+)
+{
+	retVal = getLicenseInfo(offset, &offlineState, &authentication,
+			&licenseInfo, &licenseStatus, &expDate, &expLease,
+			&compID, *libHandle);
+
+	unsigned int	x,y;
+
+	// clear();
+
+	x = 3;
+	y = 2;
+	outputLicenseInfo(&x, &y, offlineState,
+		authentication, licenseInfo, licenseStatus, expDate, expLease);
+	return retVal;
 }

@@ -19,38 +19,83 @@
 #include "../northbound/init.h"
 
 
-int 
-main(
-int		argc,
-char	*argv[]
-)
-{
-    fprintf(stdout, "Enter into Testing of License Manager");
+// int 
+// main(
+// int		argc,
+// char	*argv[]
+// )
+// {
+//     fprintf(stdout, "Enter into Testing of License Manager");
 
-    // Read Cobstant Params and Create XML
-    char			libPath[] = "/root/poc/license_manager_poc/ShaferFilechck.so";
+//     // Read Cobstant Params and Create XML
+//     char			libPath[] = "/root/poc/license_manager_poc/ShaferFilechck.so";
 
-    void			*libHandle = NULL;
+//     void			*libHandle = NULL;
 
-    // Initialized Zentitle Library
-    setup_licensing_server(libPath, &libHandle);
-    // Display input command prompt
-    fprintf(stdout, "Exit from Testing of License Manager\n");
+//     // Initialized Zentitle Library
+//     setup_licensing_server(libPath, &libHandle);
+//     // Display input command prompt
+//     fprintf(stdout, "Exit from Testing of License Manager\n");
 
-}
+// }
 
 int 
 setup_licensing_server(
 char            *libPath,
-void            **libHandle
+void            **libHandle,
+int				custID,
+int				prodID,
+unsigned int	xauth,
+unsigned int	yauth,
+unsigned int	zauth
 )
 {
     int			retVal =0;
     fprintf(stdout, "Enter into Testing of Setup License Manager\n");
 
-	retVal = SetupLib(libPath, libHandle);
-    fprintf(stdout, "Exit from Testing of Setup License Manager\n");
+    // Set Config parameter
+    setConfigParameter(custID, prodID, xauth, yauth, zauth);
 
+	retVal = SetupLib(libPath, libHandle);
+    if (retVal < 0)
+	{
+		return -1;
+	}
     retVal = outInformation(libPath);
+    fprintf(stdout, "Exit from Testing of Setup License Manager\n");
+    return retVal;
+}
+
+int
+SetLicenseStatus(
+void		    **libHandle,
+char			*licenseCode,
+int32_t			*licenseStatus,
+uint32_t		*licenseType,
+uint32_t		*actType,
+char			*xmlRegInfo
+)
+{
+    int retVal;
+	// fprintf(stdout, "Input %p %s\n", *libHandle, licenseCode);
+
+
+    retVal = checkLicenseStatus(libHandle, licenseCode,
+            licenseStatus, licenseType, actType, xmlRegInfo);
+
+    return retVal;
+}
+
+
+int
+GetLicenseStatus(
+void		    **libHandle
+)
+{
+    int retVal;
+	// fprintf(stdout, "Input %p\n", *libHandle);
+
+	retVal = GetLicenseForCurrentUser(libHandle);
+
     return retVal;
 }

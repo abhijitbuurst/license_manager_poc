@@ -173,6 +173,30 @@ int outInformation(
 char            *libPath
 );
 
+int 
+setConfigParameter(
+int				CUSTID,
+int				PRODID,
+unsigned int	XAUTH,
+unsigned int	YAUTH,
+unsigned int	ZAUTH
+);
+
+int
+checkLicenseStatus(
+void		    **libHandle,
+char			*licenseCode,
+int32_t			*licenseStatus,
+uint32_t		*licenseType,
+uint32_t		*actType,
+char			*xmlRegInfo
+);
+
+int
+GetLicenseForCurrentUser(
+void            **libHandle
+);
+
 #if ! defined (WIN32)
 void
 sig_handler(
