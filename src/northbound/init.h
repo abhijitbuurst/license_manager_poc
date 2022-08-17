@@ -19,8 +19,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <ctype.h>
-#include <inttypes.h>
-
+// #include <inttypes.h>
+#include "stdint.h"
+#include "utility/stringmapping.h"
 
 #define clear() printf("\033[H\033[J")
 #define gotoXY(x,y) printf("\033[%u;%uH", (y), (x))
@@ -115,25 +116,7 @@ void			*libHandle
 );
 
 
-void
-licStat2Str(
-int			licStat,
-char		**licenseStatus
-);
 
-void
-licType2Str(
-uint32_t	licType,
-char		**licenseType,
-char		**expDate,
-void		*libHandle
-);
-
-void
-licAct2Str(
-uint32_t	actType,
-char		**activationType
-);
 
 
 void

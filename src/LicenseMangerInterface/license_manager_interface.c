@@ -16,7 +16,7 @@
 #endif
 
 #include "license_manager_interface.h"
-#include "../northbound/init.h"
+#include "src/northbound/init.h"
 
 
 // int 

@@ -10,6 +10,7 @@ SHARED=-shared
 BUILDDIR=./Build
 SRCDIR=./src
 TESTDIR=./test
+NORTHBDIR=./src/northbound
 
 LOCAL_INCLUDES= -I.
 
@@ -43,6 +44,8 @@ ACTWRAPOBJS= \
 LMTWRAPOBJS= \
 	$(BUILDDIR)/lm_term.o
 
+SMWRAPOBJS= \
+	$(BUILDDIR)/stringmapping.o
 # ACTPARSEOBJS= \
 # 	$(BUILDDIR)/libHelper.o \
 # 	$(BUILDDIR)/nalpArgs.o \
@@ -72,8 +75,8 @@ lm_term: $(LMTWRAPOBJS) $(BUILDDIR)/license_manager.so
 #
 # license manager .so file
 # --------------------------------------------------------------------------------#
-$(BUILDDIR)/license_manager.so: $(LMIWRAPOBJS) $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS) $(NINITWRAPOBJS)
-	$(CC) $(SHARED) -o $(BUILDDIR)/license_manager.so $(LMIWRAPOBJS) $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS) $(NINITWRAPOBJS)
+$(BUILDDIR)/license_manager.so: $(LMIWRAPOBJS) $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS) $(NINITWRAPOBJS) $(SMWRAPOBJS) $(SMWRAPOBJS)
+	$(CC) $(SHARED) -o $(BUILDDIR)/license_manager.so $(LMIWRAPOBJS) $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS) $(NINITWRAPOBJS) $(SMWRAPOBJS)
 
 #
 # Object modules
@@ -82,21 +85,23 @@ $(BUILDDIR)/license_manager.so: $(LMIWRAPOBJS) $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(A
 $(BUILDDIR)/license_manager_interface.o: $(SRCDIR)/LicenseMangerInterface/license_manager_interface.c $(SRCDIR)/LicenseMangerInterface/license_manager_interface.h
 	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(SRCDIR)/LicenseMangerInterface/license_manager_interface.c -o $(BUILDDIR)/license_manager_interface.o
 
-$(BUILDDIR)/init.o:
-	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(SRCDIR)/northbound/init.c -o $(BUILDDIR)/init.o
+$(BUILDDIR)/init.o: $(SMWRAPOBJS) $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS)
+	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(NORTHBDIR)/init.c -o $(BUILDDIR)/init.o
 
-$(BUILDDIR)/dsoNSA.o:
-	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(SRCDIR)/northbound/dsoNSA.c -o $(BUILDDIR)/dsoNSA.o
+$(BUILDDIR)/dsoNSA.o: $(BUILDDIR)/libHelper.o
+	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(NORTHBDIR)/dso/dsoNSA.c -o $(BUILDDIR)/dsoNSA.o
 
-$(BUILDDIR)/dsoNSL.o:
-	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(SRCDIR)/northbound/dsoNSL.c -o $(BUILDDIR)/dsoNSL.o
+$(BUILDDIR)/dsoNSL.o: $(BUILDDIR)/libHelper.o
+	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(NORTHBDIR)/dso/dsoNSL.c -o $(BUILDDIR)/dsoNSL.o
 
-$(BUILDDIR)/dsoSHAFER.o:
-	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(SRCDIR)/northbound/dsoSHAFER.c -o $(BUILDDIR)/dsoSHAFER.o
+$(BUILDDIR)/dsoSHAFER.o: $(BUILDDIR)/libHelper.o
+	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(NORTHBDIR)/dso/dsoSHAFER.c -o $(BUILDDIR)/dsoSHAFER.o
 
 $(BUILDDIR)/libHelper.o:
-	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(SRCDIR)/northbound/libHelper.c -o $(BUILDDIR)/libHelper.o
+	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(NORTHBDIR)/utility/libHelper.c -o $(BUILDDIR)/libHelper.o
+
+$(BUILDDIR)/stringmapping.o:
+	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(NORTHBDIR)/utility/stringmapping.c -o $(BUILDDIR)/stringmapping.o
 
 $(BUILDDIR)/lm_term.o:
 	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(TESTDIR)/lm_term.c -o $(BUILDDIR)/lm_term.o
-
