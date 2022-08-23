@@ -26,10 +26,57 @@
 #define clear() printf("\033[H\033[J")
 #define gotoXY(x,y) printf("\033[%u;%uH", (y), (x))
 
+//These are the security values stamped into your library. They
+// should be changed to match your values.
+// NOTE When selecting yauth and zauth it is important that they
+// NOT be multiples of each other (for instance, yauth=300 zauth=600).
+// If they are multiples the resulting security offset will NOT be
+// random.
+
+typedef struct
+{
+    int				custID;
+    int				prodID;
+    unsigned int	security;
+    int				offset;
+    unsigned int	xauth;
+    unsigned int	yauth;
+    unsigned int	zauth;
+    char            *libPath;
+    void            *libHandle;
+}SetupParameter;
+
+typedef struct
+{
+    int		https;
+    char	*logLevel;
+    char	*workDir;
+    char	*clientName;
+    int		security;    
+}XmlParameters;
+
+typedef struct
+{
+    int				offlineState;
+    char			*authentication;
+    char			*licenseInfo;
+    char			*licenseStatus;
+    char			*expDate;
+    char			*expLease;
+    char			*compID;
+}LicenseInformation;
 
 //Used with alarm to indicate it is time to check license status
 
-
+void 
+setConfigParameter(
+int				CUSTID,
+int				PRODID,
+unsigned int	XAUTH,
+unsigned int	YAUTH,
+unsigned int	ZAUTH,
+char            *libPath
+);
 
 int
 GetLibraryInfo(
@@ -43,15 +90,18 @@ const char          *symName
 
 int
 SetupLib(
-char            *libPath,
-void            **libHandle
 );
 
+void 
+generateSecurityOffset(
+);
+
+void initlicenseInfoStruct(
+LicenseInformation** licenseInformation 
+);
 
 int
 initLib(
-char            *libPath,
-void            **libHandle
 );
 
 int
@@ -68,11 +118,7 @@ void			*libHandle
 
 int
 constParams(
-int					https,
-char				*logLevel,
-char				*workDir,
-char				*clientName,
-int					security,
+XmlParameters       *param,
 char				**xmlParams
 );
 
@@ -93,7 +139,6 @@ cleanup(
 
 int
 getNSLLibraryInfo(
-int				offset,
 char			**nslVersion,
 char			**nsaVersion,
 char			**compID,
@@ -104,15 +149,7 @@ void			*libHandle
 
 int
 getLicenseInfo(
-int				offset,
-int				*offlineState,
-char			**authentication,
-char			**licenseInfo,
-char			**licenseStatus,
-char			**expDate,
-char			**expLease,
-char			**compID,
-void			*libHandle
+LicenseInformation **licenseInformation
 );
 
 
@@ -142,28 +179,13 @@ char			*nsaHostName
 
 int
 outputLicenseInfo(
-unsigned int	*startX,
-unsigned int	*startY,
-int				offlineState,
-char			*authentication,
-char			*licenseInfo,
-char			*licenseStatus,
-char			*expDate,
-char			*expLease
 );
 
 int outInformation(
 char            *libPath
 );
 
-int 
-setConfigParameter(
-int				CUSTID,
-int				PRODID,
-unsigned int	XAUTH,
-unsigned int	YAUTH,
-unsigned int	ZAUTH
-);
+
 
 int
 checkLicenseStatus(

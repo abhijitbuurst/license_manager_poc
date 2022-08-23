@@ -6,7 +6,8 @@
 #include "dso/dsoSHAFER.h"
 #include "dso/dsoNSL.h"
 
-
+SetupParameter* setupParameter = NULL;
+LicenseInformation *licenseInformation = NULL;
 
 char			*nslVersion = NULL;
 char			*nsaVersion = NULL;
@@ -14,38 +15,15 @@ char			*compID = NULL;
 char			*cert = NULL;
 char			*nslHostName = NULL;
 char			*nsaHostName = NULL;
-char			*authentication = NULL;
 char			*specialID = NULL;
-char			*licenseInfo = NULL;
-char			*expDate = NULL;
-char			*expLease = NULL;
-char			*licenseStatus = NULL;
 char			*tmpStr = NULL;
-int				offlineState = 0;
 
 
 
 unsigned int			TIMETOCHECKLICENSE = 0;
 int			    retVal;
 char			*xmlParams;
-unsigned int	security;
-int				offset;
-int				custID;
-int				prodID;
 
-//These are the security values stamped into your library. They
-// should be changed to match your values.
-// NOTE When selecting yauth and zauth it is important that they
-// NOT be multiples of each other (for instance, yauth=300 zauth=600).
-// If they are multiples the resulting security offset will NOT be
-// random.
-unsigned int	xauth;
-unsigned int	yauth;
-unsigned int	zauth;
-
-//An optional name that may be used to identify the client.  This name
-// will appear in DataStream information.
-char			clientName[] = "LicenseManagerPOC";
 
 
 //If not using the Nalpeiron daemon use these values
@@ -94,6 +72,26 @@ DWORD_PTR	dw2
 }
 #endif
 
+void 
+setConfigParameter(
+int				custID,
+int				prodID,
+unsigned int	xauth,
+unsigned int	yauth,
+unsigned int	zauth,
+char            *libPath
+)
+{
+	setupParameter = (SetupParameter*)malloc(sizeof(SetupParameter));
+
+	setupParameter->custID = custID;
+	setupParameter->prodID = prodID;
+	setupParameter->xauth = xauth;
+	setupParameter->yauth = yauth;
+	setupParameter->zauth = zauth;
+	setupParameter->libPath = libPath;
+	setupParameter->libHandle = NULL;
+}
 
 
 void *
@@ -119,33 +117,35 @@ const char          *symName
 
 int
 SetupLib(
-char            *libPath,
-void            **libHandle
 )
 {
     fprintf(stdout, "Setting up the Library\n");
 
-	if ((yauth != 0) && (zauth != 0))
-	{
-		srand((unsigned)time(NULL));
-		security = 1 + (unsigned int)(500.0 * rand() / (RAND_MAX + 1.0));
-		offset = xauth + ((security * yauth) % zauth);
-	}
-	else
-	{
-		security = 0;
-		offset = 0;
-	}
+	generateSecurityOffset();
+	// Flooded the XML Param as per the requirement
+	// TODO: Take this as input
+	XmlParameters *param = (XmlParameters *)malloc(sizeof(XmlParameters));
+	param->clientName = "LicenseManagerPOC";
+	param->https = 0;
+	param->logLevel = "4";
+	param->workDir = "/tmp";
+	param->security = setupParameter->security;
 
-	retVal = constParams(0, "4", "/tmp", clientName, security, &xmlParams);
 
+	retVal = constParams(param, &xmlParams);
+
+	free(param);
 	if (retVal < 0)
 	{
 		fprintf(stdout, "constParams failed: %d\n", retVal);
 		return retVal;
 	}
 
-	retVal = initLib(libPath, libHandle);
+	// Till this point
+	// We have constants XML and 
+	// generated security and offset from securiry constants
+
+	retVal = initLib();
 
 	if (retVal < 0)
 	{
@@ -156,17 +156,51 @@ void            **libHandle
 	return retVal;
 }
 
+void 
+generateSecurityOffset(
+)
+{
+	// fprintf(stdout, "Generating the Security offset\n");
+
+	if ((setupParameter->yauth != 0) && (setupParameter->zauth != 0))
+	{
+		srand((unsigned)time(NULL));
+		setupParameter->security = 1 + (unsigned int)(500.0 * rand() / (RAND_MAX + 1.0));
+		setupParameter->offset = setupParameter->xauth + ((setupParameter->security * setupParameter->yauth) % setupParameter->zauth);
+	}
+	else
+	{
+		setupParameter->security = 0;
+		setupParameter->offset = 0;
+	}
+	// fprintf(stdout, "Generated Security offset %d\n", setupParameter->security);
+
+}
+
+
+void initlicenseInfoStruct(
+LicenseInformation** licenseInformation 
+)
+{
+	(*licenseInformation)->offlineState   = 0;
+	(*licenseInformation)->authentication = NULL;
+	(*licenseInformation)->licenseInfo    = NULL;
+	(*licenseInformation)->licenseStatus  = NULL;
+	(*licenseInformation)->expDate        = NULL;
+	(*licenseInformation)->expLease       = NULL;
+	(*licenseInformation)->compID         = NULL;
+}
+
 int
 initLib(
-char            *libPath,
-void            **libHandle
 )
 {
 	int			retVal =-1;
 
     fprintf(stdout, "Enter: initLib method");
 
-	retVal = openLibrary(xmlParams, libPath, libHandle);
+	retVal = openLibrary(xmlParams, setupParameter->libPath, &(setupParameter->libHandle));
+    fprintf(stdout, "Enter: aaaa method /n");
 
 	free(xmlParams);
 
@@ -176,19 +210,20 @@ void            **libHandle
 		return retVal;
 	}
 	// TODO: Read from 
-    // fprintf(stdout, "Enter: initLib method %d %d %p \n", custID, prodID, *libHandle);
+    fprintf(stdout, "Enter: dsoNSLValidateLibrary method");
 
-	retVal = dsoNSLValidateLibrary(custID, prodID, *libHandle);
-	retVal = retVal - offset;
+	retVal = dsoNSLValidateLibrary(setupParameter->custID, setupParameter->prodID, setupParameter->libHandle);
+	retVal = retVal - (setupParameter->offset);
 
 	if (retVal != 0)
 	{
 		fprintf(stdout, "Library validation failed: %d\n", retVal);
 		return retVal;
 	}
+    fprintf(stdout, "Enter: getNSLLibraryInfo method");
 
-	retVal = getNSLLibraryInfo(offset, &nslVersion, &nsaVersion,
-				&compID, &nslHostName, &nsaHostName, *libHandle);
+	retVal = getNSLLibraryInfo(&nslVersion, &nsaVersion,
+				&(compID), &nslHostName, &nsaHostName, setupParameter->libHandle);
 
 	if (retVal < 0)
 	{
@@ -196,10 +231,11 @@ void            **libHandle
 		return retVal;
 	}
 
-	retVal = getLicenseInfo(offset, &offlineState, &authentication,
-				&licenseInfo, &licenseStatus, &expDate, &expLease,
-				&compID, *libHandle);
-    // fprintf(stdout, "Exit:  initLib method");
+
+	licenseInformation = (LicenseInformation*)malloc(sizeof(LicenseInformation));
+	initlicenseInfoStruct(&licenseInformation);
+	retVal = getLicenseInfo(&licenseInformation);
+    fprintf(stdout, "Exit:  initLib method");
 
 	return 0;
 }
@@ -215,7 +251,8 @@ void				**libHandle
 	int			retVal;
 	struct stat	stbuf;
 
-    // fprintf(stdout, "Enter: openLibrary method\n");
+    fprintf(stdout, "Enter: openLibrary method\n");
+    fprintf(stdout, "Enter: initLib method %s \n", libPath);
 
 	retVal = stat(libPath, &stbuf);
 
@@ -225,6 +262,7 @@ void				**libHandle
 				"permissions.\n", libPath);
 		return -1;
 	}
+    // fprintf(stdout, "opening the library method %s\n", libPath);
 
 #if defined (WIN32)
     *libHandle = (void *)LoadLibraryA(libPath);
@@ -241,6 +279,7 @@ void				**libHandle
 #endif
 		return -1;
 	}
+    fprintf(stdout, "libHandle %p\n", *libHandle);
 
 	retVal = dsoNalpLibOpen(xmlParams, *libHandle);
 
@@ -249,8 +288,9 @@ void				**libHandle
 		fprintf(stderr, "Open library failed\n");
 		return retVal;
 	}
-    // fprintf(stdout, "Exit:  openLibrary method\n");
+    fprintf(stdout, "Exit:  openLibrary method %p\n", xmlParams);
 	return 0;
+
 }
 
 
@@ -329,11 +369,7 @@ void			*libHandle
 // You may pass a NULL into NalpLibOpen to use the default values
 int
 constParams(
-int					https,
-char				*logLevel,
-char				*workDir,
-char				*clientName,
-int					security,
+XmlParameters 		*param,
 char				**xmlParams
 )
 {
@@ -356,13 +392,13 @@ char				**xmlParams
 
 	addXMLParam(xmlParams, "NSAEnabled", "1");
 
-	addXMLParam(xmlParams, "WorkDir", workDir);
+	addXMLParam(xmlParams, "WorkDir", param->workDir);
 
-	addXMLParam(xmlParams, "ClientHostname", clientName);
+	addXMLParam(xmlParams, "ClientHostname", param->clientName);
 
-	addXMLParam(xmlParams, "LogLevel", logLevel);
+	addXMLParam(xmlParams, "LogLevel", param->logLevel);
 
-	if (https == 1)
+	if (param->https == 1)
 	{
 		addXMLParam(xmlParams, "HTTPSEnabled", "1");
 	}
@@ -389,7 +425,7 @@ char				**xmlParams
 
 	//Enable the security offset feature.  That is, all returns from
 	// the NSL library will have a security offset added to them.
-	sprintf(secVal, "%i", security);
+	sprintf(secVal, "%i", param->security);
 	addXMLParam(xmlParams, "SecurityValue", secVal);
 
 	*xmlParams = (char *)
@@ -452,7 +488,6 @@ char    *xmlValue
 
 int
 getNSLLibraryInfo(
-int				offset,
 char			**nslVersion,
 char			**nsaVersion,
 char			**compID,
@@ -466,7 +501,7 @@ void			*libHandle
 
 
 	retVal = dsoNSLGetVersion(&tempVal, libHandle);
-	retVal = retVal - offset;
+	retVal = retVal - setupParameter->offset;
 
 	if (retVal != 0)
 	{
@@ -493,7 +528,7 @@ void			*libHandle
 	}
 
 	retVal = dsoNSLGetComputerID(&tempVal, libHandle);
-	retVal = retVal - offset;
+	retVal = retVal - setupParameter->offset;
 
 	if (retVal != 0)
 	{
@@ -512,7 +547,7 @@ void			*libHandle
 	}
 
 	retVal = dsoNSLGetHostName(&tempVal, libHandle);
-	retVal = retVal - offset;
+	retVal = retVal - setupParameter->offset;
 
 	if (retVal != 0)
 	{
@@ -542,123 +577,116 @@ void			*libHandle
 
 int
 getLicenseInfo(
-int				offset,
-int				*offlineState,
-char			**authentication,
-char			**licenseInfo,
-char			**licenseStatus,
-char			**expDate,
-char			**expLease,
-char			**compID,
-void			*libHandle
+LicenseInformation **license
 )
 {
 	int			retVal;
-	int32_t		licStat;
-	int32_t		tempp;
-	uint32_t	licType;
-	uint32_t	actType;
-	char		*typeInfo = NULL;
-	char		*actInfo = NULL;
+
 	char		*tempVal;
 
 
-	retVal = dsoNSLGetComputerID(&tempVal, libHandle);
-	retVal = retVal - offset;
+	retVal = dsoNSLGetComputerID(&tempVal, setupParameter->libHandle);
+	retVal = retVal - (setupParameter->offset);
+    fprintf(stdout, "\nlibHandle %d %p %p\n", retVal, tempVal, (*license)->compID);
 
 	if (retVal != 0)
 	{
-		handleError(retVal, compID, libHandle);
+		handleError(retVal, &((*license)->compID), setupParameter->libHandle);
 	}
 	else
 	{
-		if (*compID != NULL)
+		if ((*license)->compID != NULL)
 		{
-			free(*compID);
-			*compID = NULL;
+			free((*license)->compID);
+			(*license)->compID = NULL;
 		}
 
-		*compID = strdup(tempVal);
-		dsoNSLFree(tempVal, libHandle);
+		(*license)->compID = strdup(tempVal);
+		dsoNSLFree(tempVal, setupParameter->libHandle);
 	}
-
-	retVal = dsoNSLGetLicenseStatus(&licStat, libHandle);
-	retVal = retVal - offset;
+	int32_t		licStat;
+	retVal = dsoNSLGetLicenseStatus(&licStat, setupParameter->libHandle);
+	retVal = retVal - setupParameter->offset;
 
 	if (retVal != 0)
 	{
-		handleError(retVal, licenseStatus, libHandle);
+		handleError(retVal, &((*license)->licenseStatus), setupParameter->libHandle);
 	}
 
 	//Call with certContainer = NULL to get offline state.  Libraries
 	// prior to 3.7.52 DO NOT have this ability and will error out if
 	// licensestatus is NULL.  In libraries 3.7.52 and newer, temp may
 	// be NULL as well as *licenseNo and *certContainer.
-	retVal = dsoNSLImportCertificate(NULL, &tempp, NULL, libHandle);
-	retVal = retVal - offset;
+	int32_t		tempp;
+	retVal = dsoNSLImportCertificate(NULL, &tempp, NULL, setupParameter->libHandle);
+	retVal = retVal - setupParameter->offset;
 
 	if (retVal != 0)
 	{
-		handleError(retVal, licenseStatus, libHandle);
+		handleError(retVal, &((*license)->licenseStatus), setupParameter->libHandle);
 	}
 
 	//1 - activation request generated and awaiting cert impomrt
 	//0 - Offline activation is not underway.
-	*offlineState = retVal;
+	(*license)->offlineState = retVal;
+	licStat2Str(licStat, &((*license)->licenseStatus));
 
-	licStat2Str(licStat, licenseStatus);
-
-	if (*authentication != NULL)
+	if ((*license)->authentication != NULL)
 	{
-		free(*authentication);
-		*authentication = NULL;
+		free((*license)->authentication);
+		(*license)->authentication = NULL;
 	}
 
-	retVal = dsoNSLGetLicenseCode(&tempVal, libHandle);
-	retVal = retVal - offset;
+	retVal = dsoNSLGetLicenseCode(&tempVal, setupParameter->libHandle);
+	retVal = retVal - setupParameter->offset;
 
 	if (retVal == 0)
 	{
-		*authentication = strdup(tempVal);
+		(*license)->authentication = strdup(tempVal);
 	}
 
 	if (tempVal != NULL)
-			dsoNSLFree(tempVal, libHandle);
+			dsoNSLFree(tempVal, setupParameter->libHandle);
 
 
-	if (*expLease != NULL)
+	if ((*license)->expLease != NULL)
 	{
-		free(*expLease);
-		*expLease = NULL;
+		free((*license)->expLease);
+		(*license)->expLease = NULL;
 	}
 
-	retVal = dsoNSLGetLeaseExpDate(&tempVal, libHandle);
-	retVal = retVal - offset;
+	retVal = dsoNSLGetLeaseExpDate(&tempVal, setupParameter->libHandle);
+	retVal = retVal - setupParameter->offset;
 
 	//Don't display error assume we just don't have a license code.
 	if (retVal == 0)
 	{
-		*expLease = strdup(tempVal);
+		(*license)->expLease = strdup(tempVal);
 	}
 
 	if (tempVal != NULL)
-			dsoNSLFree(tempVal, libHandle);
-		
-	retVal = dsoNSLGetLicenseInfo(&licType, &actType, libHandle);
-	retVal = retVal - offset;
+			dsoNSLFree(tempVal, setupParameter->libHandle);
+
+	uint32_t	licType;
+	uint32_t	actType;
+
+	retVal = dsoNSLGetLicenseInfo(&licType, &actType, setupParameter->libHandle);
+	retVal = retVal - setupParameter->offset;
 
 	if (retVal != 0)
 	{
-		handleError(retVal, licenseInfo, libHandle);
+		handleError(retVal, &((*license)->licenseInfo), setupParameter->libHandle);
 	}
 
-	licType2Str(licType, &typeInfo, expDate, libHandle, offset);
+	char		*typeInfo = NULL;
+	char		*actInfo = NULL;
+	licType2Str(licType, &typeInfo, &((*license)->expDate), setupParameter->libHandle, setupParameter->offset);
 	licAct2Str(actType, &actInfo);
 
-	if (*licenseInfo != NULL)
-		free(*licenseInfo);
+	if ((*license)->licenseInfo != NULL)
+		free((*license)->licenseInfo);
 
-	*licenseInfo = strdup(typeInfo);
+	(*license)->licenseInfo = strdup(typeInfo);
 
 	free(typeInfo);
 	free(actInfo);
@@ -762,57 +790,41 @@ char			*nsaHostName
 
 int
 outputLicenseInfo(
-unsigned int	*startX,
-unsigned int	*startY,
-int				offlineState,
-char			*authentication,
-char			*licenseInfo,
-char			*licenseStatus,
-char			*expDate,
-char			*expLease
 )
 {
-	unsigned x, y;
-
-
-	x = *startX;
-	y = *startY;
 
 	//License code may be unset
 	// gotoXY(x, y);
 	
-	if (authentication == NULL)
+	if (licenseInformation->authentication == NULL)
 	{
 		fprintf(stdout, "License code: Unknown\n");
 	}
 	else
 	{
-		fprintf(stdout, "License code: %s\n", authentication);
+		fprintf(stdout, "License code: %s\n", licenseInformation->authentication);
 	}
 
 	// gotoXY(x, ++y);
-	fprintf(stdout, "ComputerID: %s\n", compID);
+	fprintf(stdout, "ComputerID: %s\n", licenseInformation->compID);
 
 	// gotoXY(x, ++y);
-	fprintf(stdout, "License status: %s\n", licenseStatus);
+	fprintf(stdout, "License status: %s\n", licenseInformation->licenseStatus);
 
-	if (offlineState == 1)
+	if (licenseInformation->offlineState == 1)
 	{
 		// gotoXY(x, ++y);
 		fprintf(stdout, "Library awaiting a certificate import\n");
 	}
 
 	// gotoXY(x, ++y);
-	fprintf(stdout, "License Type: %s\n", licenseInfo);
+	fprintf(stdout, "License Type: %s\n", licenseInformation->licenseInfo);
 
 	// gotoXY(x, ++y);
-	fprintf(stdout, "License Exp Date: %s\n", expDate);
+	fprintf(stdout, "License Exp Date: %s\n", licenseInformation->expDate);
 
 	// gotoXY(x, ++y);
-	fprintf(stdout, "Lease Exp Date: %s\n", expLease);
-
-	*startX = x;
-	*startY = y;
+	fprintf(stdout, "Lease Exp Date: %s\n", licenseInformation->expLease);
 
 	return 0;
 }
@@ -830,32 +842,14 @@ char            *libPath
 	y = 2;
 	fprintf(stdout, "===================================\n");
 
-	outputNSLLibraryInfo(&x, &y, libPath, custID, prodID,
+	outputNSLLibraryInfo(&x, &y, libPath, setupParameter->custID, setupParameter->prodID,
 			nslVersion, nsaVersion, compID, nslHostName, nsaHostName);
 
 	fprintf(stdout, "-----------------------------------\n");
 
-	outputLicenseInfo(&x, &y, offlineState,
-			authentication, licenseInfo, licenseStatus, expDate, expLease);
+	outputLicenseInfo();
 	fprintf(stdout, "===================================\n");
 
-	return 0;
-}
-
-int 
-setConfigParameter(
-int				CUSTID,
-int				PRODID,
-unsigned int	XAUTH,
-unsigned int	YAUTH,
-unsigned int	ZAUTH
-)
-{
-	custID = CUSTID;
-	prodID = PRODID;
-	xauth = XAUTH;
-	yauth = YAUTH;
-	zauth = ZAUTH;
 	return 0;
 }
 
@@ -883,7 +877,7 @@ char			*xmlRegInfo
 	//Check on the license and get a new one if needed.  If
 	// we don't get a valid license quit.
 	retVal = dsoNSLGetLicenseStatus(licenseStatus, *libHandle);
-	retVal = retVal - offset;
+	retVal = retVal - setupParameter->offset;
 
 	//An error return (< 0)from the library indicates that something
 	// is wrong. On the other hand, a status value of < 0 indicates
@@ -900,7 +894,7 @@ char			*xmlRegInfo
 		fprintf(stdout, "Getting New License\n");
 		retVal = dsoNSLObtainLicense(licenseCode,
 					licenseStatus, xmlRegInfo, NULL, *libHandle);
-		retVal = retVal - offset;
+		retVal = retVal - setupParameter->offset;
 
 		//We've failed with an error.  Output error information and exit
 		if (retVal != 0)
@@ -921,7 +915,7 @@ char			*xmlRegInfo
 		}
 		
 		retVal = dsoNSLGetComputerID(&compID, *libHandle);
-		retVal = retVal - offset;
+		retVal = retVal - setupParameter->offset;
 		
 		if (retVal != 0)
 		{
@@ -958,7 +952,7 @@ char			*xmlRegInfo
 	// method (activation method will be online as we just got it
 	// from NSLGetLicense).
 	retVal = dsoNSLGetLicenseInfo(licenseType, actType, *libHandle);
-	retVal = retVal - offset;
+	retVal = retVal - setupParameter->offset;
 
 	if (retVal < 0)
 	{
@@ -979,17 +973,8 @@ GetLicenseForCurrentUser(
 void            **libHandle
 )
 {
-	retVal = getLicenseInfo(offset, &offlineState, &authentication,
-			&licenseInfo, &licenseStatus, &expDate, &expLease,
-			&compID, *libHandle);
+	retVal = getLicenseInfo(&licenseInformation);
 
-	unsigned int	x,y;
-
-	// clear();
-
-	x = 3;
-	y = 2;
-	outputLicenseInfo(&x, &y, offlineState,
-		authentication, licenseInfo, licenseStatus, expDate, expLease);
+	outputLicenseInfo();
 	return retVal;
 }

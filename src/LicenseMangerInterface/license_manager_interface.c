@@ -54,9 +54,9 @@ unsigned int	zauth
     fprintf(stdout, "Enter into Testing of Setup License Manager\n");
 
     // Set Config parameter
-    setConfigParameter(custID, prodID, xauth, yauth, zauth);
+    setConfigParameter(custID, prodID, xauth, yauth, zauth, libPath);
 
-	retVal = SetupLib(libPath, libHandle);
+	retVal = SetupLib();
     if (retVal < 0)
 	{
 		return -1;
