@@ -18,6 +18,11 @@
 #include "license_manager_interface.h"
 #include "src/northbound/init.h"
 
+#define		CIFS 		"CIFS"
+#define		GOLD 		"GOLD"
+#define		LNS 		"LNS"
+#define		NFS 		"NFS"
+#define		SNAPR  		"SNAPR"
 
 // int 
 // main(
@@ -42,7 +47,6 @@
 int 
 setup_licensing_server(
 char            *libPath,
-void            **libHandle,
 int				custID,
 int				prodID,
 unsigned int	xauth,
@@ -80,8 +84,8 @@ char			*xmlRegInfo
 	// fprintf(stdout, "Input %p %s\n", *libHandle, licenseCode);
 
 
-    retVal = checkLicenseStatus(libHandle, licenseCode,
-            licenseStatus, licenseType, actType, xmlRegInfo);
+    retVal = checkLicenseStatus(licenseCode,
+            licenseStatus, licenseType, actType);
 
     return retVal;
 }
@@ -98,4 +102,32 @@ void		    **libHandle
 	retVal = GetLicenseForCurrentUser(libHandle);
 
     return retVal;
+}
+
+int
+GetFeature(
+)
+{
+    int					retVal;
+	int32_t				featureStatus = 0;
+	char *featcode = NULL;
+	featcode = strdup(CIFS);
+    retVal = GetFeatureStatus(featcode, featureStatus);
+    
+    featcode = strdup(GOLD);
+    retVal = GetFeatureStatus(featcode, featureStatus);
+    featcode = strdup(LNS);
+    retVal = GetFeatureStatus(featcode, featureStatus);
+    featcode = strdup(NFS);
+    retVal = GetFeatureStatus(featcode, featureStatus);
+    featcode = strdup(SNAPR);
+    retVal = GetFeatureStatus(featcode, featureStatus);
+    return retVal;
+}
+
+int
+CloseApplication(
+)
+{
+    return 0;
 }

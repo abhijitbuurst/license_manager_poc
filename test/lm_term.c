@@ -73,15 +73,21 @@ void
 menu()
 {
 
-	// while(1){
+	while(1){
 		int choice=0;
+		fprintf(stdout, "\n=============Menu===============\n");
+
 		fprintf(stdout, "1) Set License code\n");
 
 		fprintf(stdout, "2) Get License Status\n");
+		
+		fprintf(stdout, "3) Get Features \n");
 
-		fprintf(stdout, "3) Exit\n");
+		fprintf(stdout, "4) Exit\n");
+		fprintf(stdout, "-------Enter the Choice---------\n");
 
 		scanf("%d",&choice);
+		fprintf(stdout, "================================\n");
 
 		switch (choice)
 		{
@@ -117,11 +123,15 @@ menu()
 			fprintf(stdout, "===========================================\n");
 			break;
 
+		case 3:
+			GetFeature();
+			break;
 
 		default:
+			CloseApplication();
 			return;
 		}
-	// }
+	}
 }
 
 int 
@@ -136,7 +146,7 @@ char	*argv[]
 
 
     // Initialized Zentitle Library
-    setup_licensing_server(libPath, &libHandle, custID, prodID, xauth, yauth, zauth);
+    setup_licensing_server(libPath, custID, prodID, xauth, yauth, zauth);
     // Display input command prompt
 
 	menu();

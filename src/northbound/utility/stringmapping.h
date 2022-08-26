@@ -29,4 +29,10 @@ uint32_t	actType,
 char		**activationType
 );
 
+void
+feat2Str(
+uint32_t featureStatusCode,
+char **featureStatus 
+);
+
 #endif

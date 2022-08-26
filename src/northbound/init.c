@@ -200,7 +200,7 @@ initLib(
     fprintf(stdout, "Enter: initLib method");
 
 	retVal = openLibrary(xmlParams, setupParameter->libPath, &(setupParameter->libHandle));
-    fprintf(stdout, "Enter: aaaa method /n");
+    fprintf(stdout, "Enter: aaaa method \n");
 
 	free(xmlParams);
 
@@ -210,7 +210,7 @@ initLib(
 		return retVal;
 	}
 	// TODO: Read from 
-    fprintf(stdout, "Enter: dsoNSLValidateLibrary method");
+    fprintf(stdout, "Enter: dsoNSLValidateLibrary method\n");
 
 	retVal = dsoNSLValidateLibrary(setupParameter->custID, setupParameter->prodID, setupParameter->libHandle);
 	retVal = retVal - (setupParameter->offset);
@@ -605,7 +605,14 @@ LicenseInformation **license
 		dsoNSLFree(tempVal, setupParameter->libHandle);
 	}
 	int32_t		licStat;
-	retVal = dsoNSLGetLicenseStatus(&licStat, setupParameter->libHandle);
+	if ((*license)->authentication == NULL)
+	{
+		retVal = dsoNSLGetLicenseStatus(&licStat, setupParameter->libHandle);
+	}else{
+		retVal = dsoNSLObtainLicense((*license)->authentication,
+					&licStat, NULL, NULL, setupParameter->libHandle);
+	}
+
 	retVal = retVal - setupParameter->offset;
 
 	if (retVal != 0)
@@ -856,12 +863,10 @@ char            *libPath
 
 int
 checkLicenseStatus(
-void			**libHandle,
 char			*licenseCode,
 int32_t			*licenseStatus,
 uint32_t		*licenseType,
-uint32_t		*actType,
-char			*xmlRegInfo
+uint32_t		*actType
 )
 {
 	char			*compID = NULL;
@@ -876,7 +881,8 @@ char			*xmlRegInfo
 
 	//Check on the license and get a new one if needed.  If
 	// we don't get a valid license quit.
-	retVal = dsoNSLGetLicenseStatus(licenseStatus, *libHandle);
+	int32_t		licStat;
+	retVal = dsoNSLGetLicenseStatus(&licStat, setupParameter->libHandle);
 	retVal = retVal - setupParameter->offset;
 
 	//An error return (< 0)from the library indicates that something
@@ -887,25 +893,25 @@ char			*xmlRegInfo
 	//Many error returns can be sucessfully handled simply by requesting
 	// a new license. So, if we have either an error or an invalid license
 	// status, try to get a new license from Nalpeiron.
-	if ((retVal < 0) || (*licenseStatus <= 0))
+	if ((retVal < 0) || (licStat <= 0))
 	{
 		//The getlicense call is where registration information is
 		// passed into Nalpeiron if it is present.
 		fprintf(stdout, "Getting New License\n");
 		retVal = dsoNSLObtainLicense(licenseCode,
-					licenseStatus, xmlRegInfo, NULL, *libHandle);
+					&licStat, NULL, NULL, setupParameter->libHandle);
 		retVal = retVal - setupParameter->offset;
 
 		//We've failed with an error.  Output error information and exit
 		if (retVal != 0)
 		{
 			fprintf(stderr, "Get license failed\n");
-			dsoNalpGetErrorMsg(retVal, &errMsg, *libHandle);
+			dsoNalpGetErrorMsg(retVal, &errMsg, setupParameter->libHandle);
 
 			if (errMsg != NULL)
 			{
 				fprintf(stderr, "%d: %s\n", retVal, errMsg);
-				dsoNSLFree(errMsg, *libHandle);
+				dsoNSLFree(errMsg, setupParameter->libHandle);
 				errMsg = NULL;
 			}
 
@@ -914,18 +920,18 @@ char			*xmlRegInfo
 			return retVal;
 		}
 		
-		retVal = dsoNSLGetComputerID(&compID, *libHandle);
+		retVal = dsoNSLGetComputerID(&compID, setupParameter->libHandle);
 		retVal = retVal - setupParameter->offset;
 		
 		if (retVal != 0)
 		{
 			fprintf(stderr, "GetComputerID after NSLObtainLicense() failed\n");
-			dsoNalpGetErrorMsg(retVal, &errMsg, *libHandle);
+			dsoNalpGetErrorMsg(retVal, &errMsg, setupParameter->libHandle);
 
 			if (errMsg != NULL)
 			{
 				fprintf(stderr, "%d: %s\n", retVal, errMsg);
-				dsoNSLFree(errMsg, *libHandle);
+				dsoNSLFree(errMsg, setupParameter->libHandle);
 				errMsg = NULL;
 			}
 		}
@@ -934,14 +940,14 @@ char			*xmlRegInfo
 			fprintf(stdout, "After NSLObtainLicense(), Comuter ID: %s\n", compID);
 		}
 		
-		if (compID != NULL) dsoNSLFree(compID, *libHandle);
+		if (compID != NULL) dsoNSLFree(compID, setupParameter->libHandle);
 
 		//We sucessfully contacted Nalpeiron but no valid license is
 		// available to us.  Print an error message and exit.  Possible
 		// values of the product status can be found in prodStatus.h
-		if (licenseStatus < 0)
+		if (&licStat < 0)
 		{
-			fprintf(stderr, "Invalid product status of %d\n", *licenseStatus);
+			fprintf(stderr, "Invalid product status of %d\n", licStat);
 			fprintf(stdout, "==================================================\n");
 			fprintf(stdout, "\n\n");
 			return -1;
@@ -951,7 +957,7 @@ char			*xmlRegInfo
 	//We have a license of some sort.  Get info on type and activation
 	// method (activation method will be online as we just got it
 	// from NSLGetLicense).
-	retVal = dsoNSLGetLicenseInfo(licenseType, actType, *libHandle);
+	retVal = dsoNSLGetLicenseInfo(licenseType, actType, setupParameter->libHandle);
 	retVal = retVal - setupParameter->offset;
 
 	if (retVal < 0)
@@ -960,7 +966,7 @@ char			*xmlRegInfo
 		return retVal;
 	}
 
-	fprintf(stdout, "Current license status is %d\n", *licenseStatus);
+	fprintf(stdout, "Current license status is %d\n", licStat);
 	fprintf(stdout, "==================================================\n");
 	fprintf(stdout, "\n\n");
 	fflush(stdout);
@@ -977,4 +983,44 @@ void            **libHandle
 
 	outputLicenseInfo();
 	return retVal;
+}
+
+int
+GetFeatureStatus(
+char			*featcode,
+char**			featureS
+)
+{
+	int					retVal;
+	char				*errMsg = NULL;
+	// fprintf(stdout, "Check for feature %s\n", featcode);
+	int32_t			featureStatus;
+
+	//This should be a good feature
+	retVal = dsoNSLGetFeatureStatus(featcode, &featureStatus, setupParameter->libHandle);
+	retVal = retVal - setupParameter->offset;
+	feat2Str(featureStatus, featureS);
+	if (retVal < 0)
+	{
+		fprintf(stdout, "Status for feature %s :- %d ==> ", featcode, featureStatus);
+		dsoNalpGetErrorMsg(retVal, &errMsg, setupParameter->libHandle);
+
+		if (errMsg != NULL)
+		{
+			fprintf(stderr, "%d: %s\n", retVal, errMsg);
+			dsoNSLFree(errMsg, setupParameter->libHandle);
+			errMsg = NULL;
+		}
+
+		return retVal;
+	}
+	else if (featureStatus <= 0)
+	{
+		fprintf(stderr, "Invalid feature:- %d\n",featureStatus);
+		return -1;
+	}
+	fprintf(stdout, "Status for feature %s :- %d\n", featcode, featureStatus);
+
+
+	return 0;
 }

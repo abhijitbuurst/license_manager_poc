@@ -390,3 +390,62 @@ char		**activationType
 
 	return;
 }
+
+void
+feat2Str(
+uint32_t featureStatusCode,
+char **featureStatus 
+)
+{
+	if (*featureStatus != NULL)
+		free(*featureStatus);
+
+	switch (featureStatusCode)
+	{
+	case -6:// 	FEATSTATUS_EMPTY 	-6 Feature pool empty
+
+		*featureStatus = strdup("Feature pool empty\n");
+		break;
+
+	case -5:// FEATSTATUS_EXPIRED 	-5 Feature requested but license expired
+
+		*featureStatus = strdup("Feature requested but license expired\n");
+		break;
+
+	case -4:// FEATSTATUS_UNAUTH    -4 Feature not authorized for use
+
+		*featureStatus = strdup("Feature not authorized for use\n");
+		break;
+
+	case -3:// FEATSTATUS_DENIED 	-3 Feature request denied
+
+		*featureStatus = strdup("Feature request denied\n");
+		break;
+
+	case -2:// FEATSTATUS_UNKNOWN 	-2 Unknown Feature requested
+
+		*featureStatus = strdup("Unknown Feature requested\n");
+		break;
+
+	case -1:// FEATSTATUS_ERROR 	-1 Error check function return
+
+		*featureStatus = strdup("Error check function return\n");
+		break;
+
+	case 0:// FEATSTATUS_UNSET 	0 Status Undefined
+
+		*featureStatus = strdup(" activated via daemon\n");
+		break;
+
+	case 1:// FEATSTATUS_AUTH 	    1 Feature authorized for use
+		*featureStatus = strdup("Feature authorized for use\n");
+		break;
+
+
+	default:
+		*featureStatus = strdup(" With Unknown feature status\n");
+		break;
+	}
+
+	return;
+}

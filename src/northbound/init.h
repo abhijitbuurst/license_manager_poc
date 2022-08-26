@@ -189,17 +189,21 @@ char            *libPath
 
 int
 checkLicenseStatus(
-void		    **libHandle,
 char			*licenseCode,
 int32_t			*licenseStatus,
 uint32_t		*licenseType,
-uint32_t		*actType,
-char			*xmlRegInfo
+uint32_t		*actType
 );
 
 int
 GetLicenseForCurrentUser(
 void            **libHandle
+);
+
+int
+GetFeatureStatus(
+char			*featcode,
+int32_t			featureStatus
 );
 
 #if ! defined (WIN32)
