@@ -429,12 +429,12 @@ char **featureStatus
 
 	case -1:// FEATSTATUS_ERROR 	-1 Error check function return
 
-		*featureStatus = strdup("Error check function return\n");
+		*featureStatus = strdup("Not available for use\n");
 		break;
 
 	case 0:// FEATSTATUS_UNSET 	0 Status Undefined
 
-		*featureStatus = strdup(" activated via daemon\n");
+		*featureStatus = strdup(" Feature status undefined\n");
 		break;
 
 	case 1:// FEATSTATUS_AUTH 	    1 Feature authorized for use
@@ -443,7 +443,7 @@ char **featureStatus
 
 
 	default:
-		*featureStatus = strdup(" With Unknown feature status\n");
+		*featureStatus = strdup(" Unknown feature status\n");
 		break;
 	}
 

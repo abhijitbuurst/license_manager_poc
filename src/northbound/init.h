@@ -203,7 +203,7 @@ void            **libHandle
 int
 GetFeatureStatus(
 char			*featcode,
-int32_t			featureStatus
+char**			featureS
 );
 
 #if ! defined (WIN32)

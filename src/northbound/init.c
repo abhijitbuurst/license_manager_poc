@@ -197,10 +197,10 @@ initLib(
 {
 	int			retVal =-1;
 
-    fprintf(stdout, "Enter: initLib method");
+    // fprintf(stdout, "Enter: initLib method");
 
 	retVal = openLibrary(xmlParams, setupParameter->libPath, &(setupParameter->libHandle));
-    fprintf(stdout, "Enter: aaaa method \n");
+    // fprintf(stdout, "Enter: aaaa method \n");
 
 	free(xmlParams);
 
@@ -210,7 +210,7 @@ initLib(
 		return retVal;
 	}
 	// TODO: Read from 
-    fprintf(stdout, "Enter: dsoNSLValidateLibrary method\n");
+    // fprintf(stdout, "Enter: dsoNSLValidateLibrary method\n");
 
 	retVal = dsoNSLValidateLibrary(setupParameter->custID, setupParameter->prodID, setupParameter->libHandle);
 	retVal = retVal - (setupParameter->offset);
@@ -220,7 +220,7 @@ initLib(
 		fprintf(stdout, "Library validation failed: %d\n", retVal);
 		return retVal;
 	}
-    fprintf(stdout, "Enter: getNSLLibraryInfo method");
+    // fprintf(stdout, "Enter: getNSLLibraryInfo method");
 
 	retVal = getNSLLibraryInfo(&nslVersion, &nsaVersion,
 				&(compID), &nslHostName, &nsaHostName, setupParameter->libHandle);
@@ -235,7 +235,7 @@ initLib(
 	licenseInformation = (LicenseInformation*)malloc(sizeof(LicenseInformation));
 	initlicenseInfoStruct(&licenseInformation);
 	retVal = getLicenseInfo(&licenseInformation);
-    fprintf(stdout, "Exit:  initLib method");
+    // fprintf(stdout, "Exit:  initLib method");
 
 	return 0;
 }
@@ -251,8 +251,8 @@ void				**libHandle
 	int			retVal;
 	struct stat	stbuf;
 
-    fprintf(stdout, "Enter: openLibrary method\n");
-    fprintf(stdout, "Enter: initLib method %s \n", libPath);
+    // fprintf(stdout, "Enter: openLibrary method\n");
+    // fprintf(stdout, "Enter: initLib method %s \n", libPath);
 
 	retVal = stat(libPath, &stbuf);
 
@@ -288,7 +288,7 @@ void				**libHandle
 		fprintf(stderr, "Open library failed\n");
 		return retVal;
 	}
-    fprintf(stdout, "Exit:  openLibrary method %p\n", xmlParams);
+    // fprintf(stdout, "Exit:  openLibrary method %p\n", xmlParams);
 	return 0;
 
 }
@@ -1002,12 +1002,11 @@ char**			featureS
 	feat2Str(featureStatus, featureS);
 	if (retVal < 0)
 	{
-		fprintf(stdout, "Status for feature %s :- %d ==> ", featcode, featureStatus);
 		dsoNalpGetErrorMsg(retVal, &errMsg, setupParameter->libHandle);
 
 		if (errMsg != NULL)
 		{
-			fprintf(stderr, "%d: %s\n", retVal, errMsg);
+			// fprintf(stderr, "%d: %s\n", retVal, errMsg);
 			dsoNSLFree(errMsg, setupParameter->libHandle);
 			errMsg = NULL;
 		}
@@ -1016,11 +1015,10 @@ char**			featureS
 	}
 	else if (featureStatus <= 0)
 	{
-		fprintf(stderr, "Invalid feature:- %d\n",featureStatus);
+		// fprintf(stderr, "Invalid feature:- %d\n",featureStatus);
 		return -1;
 	}
-	fprintf(stdout, "Status for feature %s :- %d\n", featcode, featureStatus);
-
+	// fprintf(stdout, "Status for feature %s :- %d\n", featcode, featureStatus);
 
 	return 0;
 }

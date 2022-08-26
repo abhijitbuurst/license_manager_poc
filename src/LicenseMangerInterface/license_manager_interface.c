@@ -109,19 +109,28 @@ GetFeature(
 )
 {
     int					retVal;
-	int32_t				featureStatus = 0;
+	char*				featureStatus = 0;
 	char *featcode = NULL;
 	featcode = strdup(CIFS);
-    retVal = GetFeatureStatus(featcode, featureStatus);
-    
+    retVal = GetFeatureStatus(featcode, &featureStatus);
+    fprintf(stdout, "Feature %s :- %s\n", featcode, featureStatus);
+
     featcode = strdup(GOLD);
-    retVal = GetFeatureStatus(featcode, featureStatus);
+    retVal = GetFeatureStatus(featcode, &featureStatus);
+    fprintf(stdout, "Feature %s :- %s\n", featcode, featureStatus);
+
     featcode = strdup(LNS);
-    retVal = GetFeatureStatus(featcode, featureStatus);
+    retVal = GetFeatureStatus(featcode, &featureStatus);
+    fprintf(stdout, "Feature %s :- %s\n", featcode, featureStatus);
+
     featcode = strdup(NFS);
-    retVal = GetFeatureStatus(featcode, featureStatus);
+    retVal = GetFeatureStatus(featcode, &featureStatus);
+    fprintf(stdout, "Feature %s :- %s\n", featcode, featureStatus);
+
     featcode = strdup(SNAPR);
-    retVal = GetFeatureStatus(featcode, featureStatus);
+    retVal = GetFeatureStatus(featcode, &featureStatus);
+    fprintf(stdout, "Feature %s :- %s\n", featcode, featureStatus);
+
     return retVal;
 }
 
