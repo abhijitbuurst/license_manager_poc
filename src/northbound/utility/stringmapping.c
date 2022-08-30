@@ -392,58 +392,47 @@ char		**activationType
 }
 
 void
-feat2Str(
-uint32_t featureStatusCode,
-char **featureStatus 
+featStat2Str(
+int			featStat,
+char		**featureStatus
 )
 {
 	if (*featureStatus != NULL)
 		free(*featureStatus);
 
-	switch (featureStatusCode)
+
+	switch (featStat)
 	{
-	case -6:// 	FEATSTATUS_EMPTY 	-6 Feature pool empty
-
-		*featureStatus = strdup("Feature pool empty\n");
+	case -5:
+		*featureStatus = strdup("License expired\n");
 		break;
 
-	case -5:// FEATSTATUS_EXPIRED 	-5 Feature requested but license expired
-
-		*featureStatus = strdup("Feature requested but license expired\n");
+	case -4:
+		*featureStatus = strdup("Feature not authorized\n");
 		break;
 
-	case -4:// FEATSTATUS_UNAUTH    -4 Feature not authorized for use
-
-		*featureStatus = strdup("Feature not authorized for use\n");
-		break;
-
-	case -3:// FEATSTATUS_DENIED 	-3 Feature request denied
-
+	case -3:
 		*featureStatus = strdup("Feature request denied\n");
 		break;
 
-	case -2:// FEATSTATUS_UNKNOWN 	-2 Unknown Feature requested
-
-		*featureStatus = strdup("Unknown Feature requested\n");
+	case -2:
+		*featureStatus = strdup("Unknown feature name\n");
 		break;
 
-	case -1:// FEATSTATUS_ERROR 	-1 Error check function return
-
-		*featureStatus = strdup("Not available for use\n");
+	case -1:
+		*featureStatus = strdup("Feature Error\n");
 		break;
 
-	case 0:// FEATSTATUS_UNSET 	0 Status Undefined
-
-		*featureStatus = strdup(" Feature status undefined\n");
+	case 0:
+		*featureStatus = strdup("Feature unset\n");
 		break;
 
-	case 1:// FEATSTATUS_AUTH 	    1 Feature authorized for use
-		*featureStatus = strdup("Feature authorized for use\n");
+	case 1:
+		*featureStatus = strdup("Feature Authorized\n");
 		break;
-
 
 	default:
-		*featureStatus = strdup(" Unknown feature status\n");
+		*featureStatus = strdup("Unknown feature status\n");
 		break;
 	}
 

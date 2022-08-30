@@ -55,7 +55,7 @@ unsigned int	zauth
 )
 {
     int			retVal =0;
-    fprintf(stdout, "Enter into Testing of Setup License Manager\n");
+    // fprintf(stdout, "Enter into Testing of Setup License Manager\n");
 
     // Set Config parameter
     setConfigParameter(custID, prodID, xauth, yauth, zauth, libPath);
@@ -111,6 +111,9 @@ GetFeature(
     int					retVal;
 	char*				featureStatus = 0;
 	char *featcode = NULL;
+
+    GetLicense();
+
 	featcode = strdup(CIFS);
     retVal = GetFeatureStatus(featcode, &featureStatus);
     fprintf(stdout, "Feature %s :- %s\n", featcode, featureStatus);

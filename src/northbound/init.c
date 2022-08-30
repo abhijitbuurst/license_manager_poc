@@ -119,7 +119,7 @@ int
 SetupLib(
 )
 {
-    fprintf(stdout, "Setting up the Library\n");
+    // fprintf(stdout, "Setting up the Library\n");
 
 	generateSecurityOffset();
 	// Flooded the XML Param as per the requirement
@@ -151,7 +151,7 @@ SetupLib(
 	{
 		return retVal;
 	}
-    fprintf(stdout, "Library setup done\n");
+    // fprintf(stdout, "Library setup done\n");
 
 	return retVal;
 }
@@ -279,7 +279,7 @@ void				**libHandle
 #endif
 		return -1;
 	}
-    fprintf(stdout, "libHandle %p\n", *libHandle);
+    // fprintf(stdout, "libHandle %p\n", *libHandle);
 
 	retVal = dsoNalpLibOpen(xmlParams, *libHandle);
 
@@ -587,7 +587,7 @@ LicenseInformation **license
 
 	retVal = dsoNSLGetComputerID(&tempVal, setupParameter->libHandle);
 	retVal = retVal - (setupParameter->offset);
-    fprintf(stdout, "\nlibHandle %d %p %p\n", retVal, tempVal, (*license)->compID);
+    // fprintf(stdout, "\nlibHandle %d %p %p\n", retVal, tempVal, (*license)->compID);
 
 	if (retVal != 0)
 	{
@@ -996,10 +996,11 @@ char**			featureS
 	// fprintf(stdout, "Check for feature %s\n", featcode);
 	int32_t			featureStatus;
 
+
 	//This should be a good feature
 	retVal = dsoNSLGetFeatureStatus(featcode, &featureStatus, setupParameter->libHandle);
 	retVal = retVal - setupParameter->offset;
-	feat2Str(featureStatus, featureS);
+	featStat2Str(featureStatus, featureS);
 	if (retVal < 0)
 	{
 		dsoNalpGetErrorMsg(retVal, &errMsg, setupParameter->libHandle);
@@ -1019,6 +1020,25 @@ char**			featureS
 		return -1;
 	}
 	// fprintf(stdout, "Status for feature %s :- %d\n", featcode, featureStatus);
+
+	return 0;
+}
+
+
+int GetLicense(
+)
+{
+
+	char *errMsg = NULL;
+	int32_t licenseStatus;
+	retVal = dsoNSLGetLicense(NULL, &licenseStatus, NULL, setupParameter->libHandle);
+	retVal = retVal - setupParameter->security;
+
+	if (retVal != 0)
+	{
+		handleError(retVal, &errMsg, setupParameter->libHandle);
+	}
+	licStat2Str(licenseStatus, &(licenseInformation->licenseStatus));
 
 	return 0;
 }

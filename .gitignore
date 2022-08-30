@@ -1,2 +1,7 @@
 Build/
 *.o
+lm_term
+.gitignore
+.vscode/
+*.so
+Build/license_manager.so

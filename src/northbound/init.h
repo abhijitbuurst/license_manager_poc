@@ -206,6 +206,9 @@ char			*featcode,
 char**			featureS
 );
 
+int GetLicense(
+);
+
 #if ! defined (WIN32)
 void
 sig_handler(

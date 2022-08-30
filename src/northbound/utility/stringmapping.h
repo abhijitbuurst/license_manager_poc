@@ -30,9 +30,9 @@ char		**activationType
 );
 
 void
-feat2Str(
-uint32_t featureStatusCode,
-char **featureStatus 
+featStat2Str(
+int			featStat,
+char		**featureStatus
 );
 
 #endif
