@@ -46,6 +46,9 @@ LMTWRAPOBJS= \
 
 SMWRAPOBJS= \
 	$(BUILDDIR)/stringmapping.o
+
+SWIG_LM_WRAPPNJS= \
+	$(BUILDDIR)/license_manager_interface_wrap.o
 # ACTPARSEOBJS= \
 # 	$(BUILDDIR)/libHelper.o \
 # 	$(BUILDDIR)/nalpArgs.o \
@@ -77,7 +80,7 @@ lm_term: $(LMTWRAPOBJS) $(BUILDDIR)/license_manager.so
 # --------------------------------------------------------------------------------#
 $(BUILDDIR)/license_manager.so: $(LMIWRAPOBJS) $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS) $(NINITWRAPOBJS) $(SMWRAPOBJS) $(SMWRAPOBJS)
 	$(CC) $(SHARED) -g -o $(BUILDDIR)/license_manager.so $(LMIWRAPOBJS) $(NSLWRAPOBJS) $(NSAWRAPOBJS) $(ACTWRAPOBJS) $(NINITWRAPOBJS) $(SMWRAPOBJS)
-
+#	cp $(BUILDDIR)/license_manager.so /usr/lib64/php/modules/
 #
 # Object modules
 # ----------------------------------------------------------------------------
@@ -105,3 +108,7 @@ $(BUILDDIR)/stringmapping.o:
 
 $(BUILDDIR)/lm_term.o:
 	$(CC) $(LOCAL_CFLAGS) $(LOCAL_INCLUDES) -c $(TESTDIR)/lm_term.c -g -o $(BUILDDIR)/lm_term.o
+
+$(BUILDDIR)/license_manager_interface_wrap.o:
+	swig -php7 $(TESTDIR)/license_manager_interface.i
+#	$(CC) `php-config --includes` -fpic -c $(TESTDIR)/license_manager_interface_wrap.c -o $(BUILDDIR)/license_manager_interface_wrap.o

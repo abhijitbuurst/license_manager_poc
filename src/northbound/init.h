@@ -113,7 +113,6 @@ void				**libHandle
 
 int
 closeLibrary(
-void			*libHandle
 );
 
 int
@@ -189,15 +188,11 @@ char            *libPath
 
 int
 checkLicenseStatus(
-char			*licenseCode,
-int32_t			*licenseStatus,
-uint32_t		*licenseType,
-uint32_t		*actType
+char			*licenseCode
 );
 
 int
 GetLicenseForCurrentUser(
-void            **libHandle
 );
 
 int

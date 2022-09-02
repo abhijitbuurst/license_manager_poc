@@ -16,17 +16,11 @@ unsigned int	zauth
 
 int
 SetLicenseStatus(
-void		    **libHandle,
-char			*licenseCode,
-int32_t			*licenseStatus,
-uint32_t		*licenseType,
-uint32_t		*actType,
-char			*xmlRegInfo
+char			*licenseCode
 );
 
 int
 GetLicenseStatus(
-void		    **libHandle
 );
 
 int

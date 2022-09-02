@@ -72,20 +72,14 @@ unsigned int	zauth
 
 int
 SetLicenseStatus(
-void		    **libHandle,
-char			*licenseCode,
-int32_t			*licenseStatus,
-uint32_t		*licenseType,
-uint32_t		*actType,
-char			*xmlRegInfo
+char			*licenseCode
 )
 {
     int retVal;
 	// fprintf(stdout, "Input %p %s\n", *libHandle, licenseCode);
 
 
-    retVal = checkLicenseStatus(licenseCode,
-            licenseStatus, licenseType, actType);
+    retVal = checkLicenseStatus(licenseCode);
 
     return retVal;
 }
@@ -93,13 +87,12 @@ char			*xmlRegInfo
 
 int
 GetLicenseStatus(
-void		    **libHandle
 )
 {
     int retVal;
 	// fprintf(stdout, "Input %p\n", *libHandle);
 
-	retVal = GetLicenseForCurrentUser(libHandle);
+	retVal = GetLicenseForCurrentUser();
 
     return retVal;
 }
@@ -112,8 +105,11 @@ GetFeature(
 	char*				featureStatus = 0;
 	char *featcode = NULL;
 
-    GetLicense();
-
+    retVal = GetLicense();
+    if(retVal != 0){
+		fprintf(stderr, "Can not fetch the license\n");
+        return -1;
+    }
 	featcode = strdup(CIFS);
     retVal = GetFeatureStatus(featcode, &featureStatus);
     fprintf(stdout, "Feature %s :- %s\n", featcode, featureStatus);
@@ -141,5 +137,6 @@ int
 CloseApplication(
 )
 {
+    closeLibrary();
     return 0;
 }

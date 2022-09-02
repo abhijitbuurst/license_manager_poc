@@ -128,7 +128,7 @@ SetupLib(
 	param->clientName = "LicenseManagerPOC";
 	param->https = 0;
 	param->logLevel = "4";
-	param->workDir = "/tmp";
+	param->workDir = "/tmp/zentitle";
 	param->security = setupParameter->security;
 
 
@@ -211,6 +211,8 @@ initLib(
 	}
 	// TODO: Read from 
     // fprintf(stdout, "Enter: dsoNSLValidateLibrary method\n");
+	licenseInformation = (LicenseInformation*)malloc(sizeof(LicenseInformation));
+	initlicenseInfoStruct(&licenseInformation);
 
 	retVal = dsoNSLValidateLibrary(setupParameter->custID, setupParameter->prodID, setupParameter->libHandle);
 	retVal = retVal - (setupParameter->offset);
@@ -223,7 +225,7 @@ initLib(
     // fprintf(stdout, "Enter: getNSLLibraryInfo method");
 
 	retVal = getNSLLibraryInfo(&nslVersion, &nsaVersion,
-				&(compID), &nslHostName, &nsaHostName, setupParameter->libHandle);
+				&(licenseInformation->compID), &nslHostName, &nsaHostName, setupParameter->libHandle);
 
 	if (retVal < 0)
 	{
@@ -232,8 +234,7 @@ initLib(
 	}
 
 
-	licenseInformation = (LicenseInformation*)malloc(sizeof(LicenseInformation));
-	initlicenseInfoStruct(&licenseInformation);
+
 	retVal = getLicenseInfo(&licenseInformation);
     // fprintf(stdout, "Exit:  initLib method");
 
@@ -296,11 +297,10 @@ void				**libHandle
 
 int
 closeLibrary(
-void			*libHandle
 )
 {
 	int			retVal;
-
+	void		*libHandle = setupParameter->libHandle;
 
 	retVal = dsoNalpLibClose(libHandle);
 
@@ -585,25 +585,25 @@ LicenseInformation **license
 	char		*tempVal;
 
 
-	retVal = dsoNSLGetComputerID(&tempVal, setupParameter->libHandle);
-	retVal = retVal - (setupParameter->offset);
-    // fprintf(stdout, "\nlibHandle %d %p %p\n", retVal, tempVal, (*license)->compID);
+	// retVal = dsoNSLGetComputerID(&tempVal, setupParameter->libHandle);
+	// retVal = retVal - (setupParameter->offset);
+    // // fprintf(stdout, "\nlibHandle %d %p %p\n", retVal, tempVal, (*license)->compID);
 
-	if (retVal != 0)
-	{
-		handleError(retVal, &((*license)->compID), setupParameter->libHandle);
-	}
-	else
-	{
-		if ((*license)->compID != NULL)
-		{
-			free((*license)->compID);
-			(*license)->compID = NULL;
-		}
+	// if (retVal != 0)
+	// {
+	// 	handleError(retVal, &((*license)->compID), setupParameter->libHandle);
+	// }
+	// else
+	// {
+	// 	if ((*license)->compID != NULL)
+	// 	{
+	// 		free((*license)->compID);
+	// 		(*license)->compID = NULL;
+	// 	}
 
-		(*license)->compID = strdup(tempVal);
-		dsoNSLFree(tempVal, setupParameter->libHandle);
-	}
+	// 	(*license)->compID = strdup(tempVal);
+	// 	dsoNSLFree(tempVal, setupParameter->libHandle);
+	// }
 	int32_t		licStat;
 	if ((*license)->authentication == NULL)
 	{
@@ -863,10 +863,7 @@ char            *libPath
 
 int
 checkLicenseStatus(
-char			*licenseCode,
-int32_t			*licenseStatus,
-uint32_t		*licenseType,
-uint32_t		*actType
+char			*licenseCode
 )
 {
 	char			*compID = NULL;
@@ -898,6 +895,8 @@ uint32_t		*actType
 		//The getlicense call is where registration information is
 		// passed into Nalpeiron if it is present.
 		fprintf(stdout, "Getting New License\n");
+		licenseInformation->authentication = strdup(licenseCode);
+
 		retVal = dsoNSLObtainLicense(licenseCode,
 					&licStat, NULL, NULL, setupParameter->libHandle);
 		retVal = retVal - setupParameter->offset;
@@ -919,28 +918,29 @@ uint32_t		*actType
 			fprintf(stdout, "\n\n");
 			return retVal;
 		}
-		
-		retVal = dsoNSLGetComputerID(&compID, setupParameter->libHandle);
-		retVal = retVal - setupParameter->offset;
-		
-		if (retVal != 0)
-		{
-			fprintf(stderr, "GetComputerID after NSLObtainLicense() failed\n");
-			dsoNalpGetErrorMsg(retVal, &errMsg, setupParameter->libHandle);
+		licStat2Str(licStat, &(licenseInformation->licenseStatus));
 
-			if (errMsg != NULL)
-			{
-				fprintf(stderr, "%d: %s\n", retVal, errMsg);
-				dsoNSLFree(errMsg, setupParameter->libHandle);
-				errMsg = NULL;
-			}
-		}
-		else
-		{
-			fprintf(stdout, "After NSLObtainLicense(), Comuter ID: %s\n", compID);
-		}
+		// retVal = dsoNSLGetComputerID(&compID, setupParameter->libHandle);
+		// retVal = retVal - setupParameter->offset;
 		
-		if (compID != NULL) dsoNSLFree(compID, setupParameter->libHandle);
+		// if (retVal != 0)
+		// {
+		// 	fprintf(stderr, "GetComputerID after NSLObtainLicense() failed\n");
+		// 	dsoNalpGetErrorMsg(retVal, &errMsg, setupParameter->libHandle);
+
+		// 	if (errMsg != NULL)
+		// 	{
+		// 		fprintf(stderr, "%d: %s\n", retVal, errMsg);
+		// 		dsoNSLFree(errMsg, setupParameter->libHandle);
+		// 		errMsg = NULL;
+		// 	}
+		// }
+		// else
+		// {
+		// 	fprintf(stdout, "After NSLObtainLicense(), Comuter ID: %s\n", compID);
+		// }
+		
+		// if (compID != NULL) dsoNSLFree(compID, setupParameter->libHandle);
 
 		//We sucessfully contacted Nalpeiron but no valid license is
 		// available to us.  Print an error message and exit.  Possible
@@ -953,11 +953,15 @@ uint32_t		*actType
 			return -1;
 		}
 	}
+	licStat2Str(licStat, &(licenseInformation->licenseStatus));
 
 	//We have a license of some sort.  Get info on type and activation
 	// method (activation method will be online as we just got it
 	// from NSLGetLicense).
-	retVal = dsoNSLGetLicenseInfo(licenseType, actType, setupParameter->libHandle);
+	uint32_t	licType;
+	uint32_t	actType;
+
+	retVal = dsoNSLGetLicenseInfo(&licType, &actType, setupParameter->libHandle);
 	retVal = retVal - setupParameter->offset;
 
 	if (retVal < 0)
@@ -965,7 +969,10 @@ uint32_t		*actType
 		// fprintf(stdout, "Error while Getting license info\n");
 		return retVal;
 	}
-
+	char		*typeInfo = NULL;
+	char		*actInfo = NULL;
+	licType2Str(licType, &typeInfo, &(licenseInformation->expDate), setupParameter->libHandle, setupParameter->offset);
+	licAct2Str(actType, &actInfo);
 	fprintf(stdout, "Current license status is %d\n", licStat);
 	fprintf(stdout, "==================================================\n");
 	fprintf(stdout, "\n\n");
@@ -976,7 +983,6 @@ uint32_t		*actType
 
 int
 GetLicenseForCurrentUser(
-void            **libHandle
 )
 {
 	retVal = getLicenseInfo(&licenseInformation);
@@ -1029,9 +1035,14 @@ int GetLicense(
 )
 {
 
+	if(licenseInformation->authentication == NULL){
+		fprintf(stderr, "No License available");
+		return -1;
+	}
+
 	char *errMsg = NULL;
 	int32_t licenseStatus;
-	retVal = dsoNSLGetLicense(NULL, &licenseStatus, NULL, setupParameter->libHandle);
+	retVal = dsoNSLGetLicense(licenseInformation->authentication, &licenseStatus, NULL, setupParameter->libHandle);
 	retVal = retVal - setupParameter->security;
 
 	if (retVal != 0)

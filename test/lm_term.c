@@ -104,8 +104,7 @@ menu()
 			// not present it attempts to retrieve one from the server.
 			// printf("%s\n",licensecode);
 
-			retVal = SetLicenseStatus(&libHandle,  &licensecode[0],
-						licenseStatus, &licenseType, &actType, xmlRegInfo);
+			retVal = SetLicenseStatus(&licensecode[0]);
 
 			if (retVal < 0)
 			{
@@ -119,7 +118,7 @@ menu()
 		case 2:
 
 			fprintf(stdout, "Fetching the License details\n");
-			GetLicenseStatus(&libHandle);
+			GetLicenseStatus();
 			fprintf(stdout, "===========================================\n");
 			break;
 
